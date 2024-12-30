@@ -1,5 +1,6 @@
 #include "game.h"
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -17,13 +18,58 @@ Game::~Game() {
     delete [] tubes;
 }
 
+Game* newGame(const string& str) {
+    int numTubes = 0;
+
+    vector<Tube> tubeVector;
+    stringstream ss(str);
+    string color;
+
+    while (!ss.eof()) {
+        stack<pair<string, int>> s;
+        for (int i = 0; i < 4; i++) {
+            ss >> color;
+            s.push({color, 1});
+        }
+        tubeVector.push_back(Tube(s));
+    }
+
+    Tube* tubes = new Tube[tubeVector.size()];
+    for (size_t i = 0; i < tubeVector.size(); i++) {
+        tubes[i] = tubeVector[i];
+    }
+
+    return new Game(tubeVector.size(), tubes);
+}
+
+string Game::signature() const {
+    stringstream ss;
+    for (int i = 0; i < numTubes; i++) {
+        Tube t = tubes[i];
+        stack<pair<string,int>> temp;
+        while (!t.colors.empty()) {
+            temp.push(t.colors.top());
+            t.colors.pop();
+        }
+        
+        ss << "[T" << i << ":";
+        while (!temp.empty()) {
+            auto p = temp.top();
+            ss << p.first << p.second << "_";
+            temp.pop();
+        }
+        ss << "]";
+    }
+    return ss.str();
+}
+
 void Game::setTube(int numTube, Tube& tube) {
     if (numTube < numTubes) {
         tubes[numTube] = tube;
     }
 }
 
-bool Game::pour(int t1, int t2) {
+int Game::pour(int t1, int t2) {
     if (t1 < 0 || t2 >= numTubes) {
         return false;
     }
@@ -39,7 +85,16 @@ bool Game::pour(int t1, int t2) {
     int numAdded = tube2.add(tube1Top);
     tube1.remove(numAdded);
 
-    return numAdded > 0;
+    return numAdded;
+}
+
+bool Game::solved() {
+    for (int i = 0; i < numTubes; i++) {
+        if (!tubes[i].solved()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 vector<pair<Move, Game*>> Game::nextGames() {
@@ -47,16 +102,19 @@ vector<pair<Move, Game*>> Game::nextGames() {
 
     for (int i = 0; i < numTubes; i++) {
         for (int j = 0; j < numTubes; j++) {
-            if (i == j) {
+            if (i == j || tubes[i].solved() || (tubes[i].sameColor() && tubes[j].size() == 0)) {
                 continue;
             }
 
             Game* nextGame = new Game(*this);
 
-            bool validPour = nextGame->pour(i, j);
-            if (validPour) {
+            int numOnTop = tubes[i].peek().second;
+            int numAdded = nextGame->pour(i, j);
+            if (numAdded == numOnTop) {
                 Move move(i, j);
                 games.push_back({move, nextGame});
+            } else {
+                delete nextGame;
             }
         }
     }

@@ -21,9 +21,17 @@ public:
 
     std::pair<std::string, int> peek();
 
+    bool solved();
+
+    bool sameColor();
+
+    std::string signature() const;
+
     int size();
 
     void print();
+
+    friend class Game;
 private:
     std::stack<std::pair<std::string, int>> colors;
     int size_;

@@ -1,5 +1,6 @@
 #include "tube.h"
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -71,6 +72,57 @@ pair<string, int> Tube::peek() {
         return colors.top();
     }
     return {};
+}
+
+bool Tube::solved() {
+    if (size_ == 0) {
+        return true;
+    }
+
+    if (size_ != CAPACITY) {
+        return false;
+    }
+
+    stack<pair<string, int>> s = colors;
+    string color = s.top().first;
+    while (!s.empty()) {
+        if (s.top().first != color) {
+            return false;
+        }
+        s.pop();
+    }
+    return true;
+}
+
+bool Tube::sameColor() {
+    if (size_ == 0) {
+        return false;
+    }
+
+    stack<pair<string, int>> s = colors;
+    string color = s.top().first;
+    while (!s.empty()) {
+        if (s.top().first != color) {
+            return false;
+        }
+        s.pop();
+    }
+    return true;
+}
+
+string Tube::signature() const {
+    if (size_ == 0) {
+        return "_";
+    }
+
+    stringstream sig;
+    stack<pair<string, int>> s = colors;
+    while (!s.empty()) {
+        pair<string, int> color = s.top();
+        s.pop();
+        sig << color.first << color.second << "_";
+    }
+    return sig.str();
 }
 
 int Tube::size() {
