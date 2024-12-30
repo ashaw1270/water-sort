@@ -31,7 +31,7 @@ public:
 
     ~Game();
 
-    Game* newGame(const string& str);
+    Game* newGame(const std::string& str);
 
     std::string signature() const;
 

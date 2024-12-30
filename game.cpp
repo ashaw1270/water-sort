@@ -1,6 +1,7 @@
 #include "game.h"
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -19,8 +20,6 @@ Game::~Game() {
 }
 
 Game* newGame(const string& str) {
-    int numTubes = 0;
-
     vector<Tube> tubeVector;
     stringstream ss(str);
     string color;
@@ -43,24 +42,19 @@ Game* newGame(const string& str) {
 }
 
 string Game::signature() const {
-    stringstream ss;
+    vector<string> sigs;
     for (int i = 0; i < numTubes; i++) {
-        Tube t = tubes[i];
-        stack<pair<string,int>> temp;
-        while (!t.colors.empty()) {
-            temp.push(t.colors.top());
-            t.colors.pop();
-        }
-        
-        ss << "[T" << i << ":";
-        while (!temp.empty()) {
-            auto p = temp.top();
-            ss << p.first << p.second << "_";
-            temp.pop();
-        }
-        ss << "]";
+        Tube& tube = tubes[i];
+        sigs.push_back(tube.signature());
     }
-    return ss.str();
+
+    sort(sigs.begin(), sigs.end());
+
+    stringstream output;
+    for (string sig : sigs) {
+        output << sig << "|";
+    }
+    return output.str();
 }
 
 void Game::setTube(int numTube, Tube& tube) {
